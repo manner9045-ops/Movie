@@ -57,8 +57,8 @@
         <div class="iframe-wrapper" id="fullscreenContainer">
             
             <button id="floatingCloseBtn" onclick="toggleFullScreen()" 
-                    class="hidden fixed top-4 left-4 z-50 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-2xl border border-red-500 opacity-90 transition-all duration-500 cursor-pointer select-none">
-                ❌ Full Screen မှ ထွက်ရန်
+                    class="hidden fixed bottom-4 right-4 z-50 bg-black/60 hover:bg-red-600 text-white/80 hover:text-white text-xs font-bold p-2.5 rounded-full shadow-2xl border border-white/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1">
+                <span>↙️</span> <span class="text-[10px]">Normal Screen</span>
             </button>
 
             <iframe 
@@ -75,7 +75,6 @@
         const iframe = document.getElementById('cinemaOSFrame');
         const container = document.getElementById('fullscreenContainer');
         const floatBtn = document.getElementById('floatingCloseBtn');
-        let hideTimeout;
 
         function goHome() {
             iframe.src = "https://cinemaos.live";
@@ -99,9 +98,8 @@
                     screen.orientation.lock('landscape').catch(err => console.log(err));
                 }
                 
-                // Full Screen ဝင်တာနဲ့ ခလုတ်ကို အလင်းအပြည့်ပြပြီး၊ ၃ စက္ကန့်အကြာတွင် မှိန်ခိုင်းမည်
+                // Full Screen မုဒ်ထဲ ရောက်တာနဲ့ ညာဘက်အောက်က ခလုတ်လေးကို ပေါ်ခိုင်းမည်
                 floatBtn.classList.remove('hidden');
-                startFadeTimeout();
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
@@ -112,32 +110,15 @@
                     screen.orientation.unlock();
                 }
                 
-                clearTimeout(hideTimeout);
+                // ထွက်လိုက်တာနဲ့ ဖျောက်မည်
                 floatBtn.classList.add('hidden');
             }
         }
 
-        // ၃ စက္ကန့်ပြည့်ရင် ခလုတ်ကို မျက်စိထဲက ကွယ်သွားအောင် (ဒါပေမဲ့ နှိပ်လို့ရအောင်) အလင်းပိတ်ပစ်မည့်စနစ်
-        def startFadeTimeout() {
-            clearTimeout(hideTimeout);
-            floatBtn.style.opacity = "0.9";
-            floatBtn.style.pointerEvents = "auto"; // နှိပ်ခွင့်ပေးထားဆဲ
-            
-            hideTimeout = setTimeout(() => {
-                const isFS = document.fullscreenElement || document.webkitFullscreenElement;
-                if (isFS) {
-                    // 🚨 ခလုတ်ကို လုံးဝ ပွင့်လင်းမြင်သာ (Transparent) ဖြစ်အောင် လုပ်လိုက်ခြင်း
-                    // မျက်စိနဲ့ မမြင်ရတော့ပေမယ့် အဲဒီနေရာကို သွားနှိပ်ရင် အလုပ်လုပ်နေပါလိမ့်မယ်
-                    floatBtn.style.opacity = "0.02"; 
-                }
-            }, 3000); // ၃ စက္ကန့် (3000ms) အတွင်း ပျောက်သွားပါမည်
-        }
-
-        // Back button ကြောင့် ထွက်သွားလျှင် Reset လုပ်ရန်
+        // Back Button ကြောင့် ထွက်သွားခဲ့လျှင် စစ်ဆေးရန်
         function checkFsChange() {
             const isFS = document.fullscreenElement || document.webkitFullscreenElement;
             if (!isFS) {
-                clearTimeout(hideTimeout);
                 floatBtn.classList.add('hidden');
             }
         }
