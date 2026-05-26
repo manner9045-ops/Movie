@@ -49,15 +49,15 @@
                     🏠 Home
                 </button>
                 <button onclick="refreshPage()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium px-2 py-1.5 rounded-md border border-slate-700 cursor-pointer">
-                    🔄
+                    🔄 Refresh
                 </button>
             </div>
         </div>
 
-        <div class="iframe-wrapper" id="fullscreenContainer">
+        <div class="iframe-wrapper" id="fullscreenContainer" onclick="showButtonTemporarily()">
             
-            <button id="floatingCloseBtn" onclick="toggleFullScreen()" 
-                    class="hidden fixed top-4 left-4 z-50 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-2xl border border-red-500 opacity-80 hover:opacity-100 transition-all cursor-pointer">
+            <button id="floatingCloseBtn" onclick="event.stopPropagation(); toggleFullScreen();" 
+                    class="hidden fixed top-4 left-4 z-50 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-2xl border border-red-500 opacity-90 transition-opacity duration-300 cursor-pointer">
                 ❌ Full Screen မှ ထွက်ရန်
             </button>
 
@@ -75,6 +75,7 @@
         const iframe = document.getElementById('cinemaOSFrame');
         const container = document.getElementById('fullscreenContainer');
         const floatBtn = document.getElementById('floatingCloseBtn');
+        let hideTimeout;
 
         function goHome() {
             iframe.src = "https://cinemaos.live";
@@ -86,6 +87,7 @@
             iframe.src = currentSrc;
         }
 
+        // Full Screen အဖွင့်/အပိတ်
         function toggleFullScreen() {
             if (!document.fullscreenElement && !document.webkitFullscreenElement) {
                 if (container.requestFullscreen) {
@@ -96,7 +98,10 @@
                 if (screen.orientation && screen.orientation.lock) {
                     screen.orientation.lock('landscape').catch(err => console.log(err));
                 }
+                
+                // Full screen စဝင်ချင်း ခလုတ်ကို လှမ်းပြပြီး Reset လုပ်မယ်
                 floatBtn.classList.remove('hidden');
+                resetHideTimeout();
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
@@ -106,16 +111,44 @@
                 if (screen.orientation && screen.orientation.unlock) {
                     screen.orientation.unlock();
                 }
+                
+                clearTimeout(hideTimeout);
                 floatBtn.classList.add('hidden');
             }
         }
 
+        // ၅ စက္ကန့်ပြည့်ရင် အလိုအလျောက် ပြန်ဖျောက်မည့် စနစ်
+        function resetHideTimeout() {
+            clearTimeout(hideTimeout);
+            floatBtn.style.opacity = "1";
+            
+            hideTimeout = setTimeout(() => {
+                const isFS = document.fullscreenElement || document.webkitFullscreenElement;
+                if (isFS) {
+                    floatBtn.style.opacity = "0";
+                    // Transition သက်ရောက်မှုပြီးမှ လုံးဝကွယ်သွားအောင် ခဏစောင့်ပြီး hidden လုပ်ခြင်း
+                    setTimeout(() => { 
+                        if(floatBtn.style.opacity === "0") floatBtn.classList.add('hidden'); 
+                    }, 300);
+                }
+            }, 5000); // ၅ စက္ကန့် (5000ms) ထားထားပါသည်
+        }
+
+        // ဖုန်းစခရင်ကို တစ်ချက်နှိပ်လိုက်လျှင် ခလုတ်ပြန်ပေါ်လာစေရန်
+        function showButtonTemporarily() {
+            const isFS = document.fullscreenElement || document.webkitFullscreenElement;
+            if (isFS) {
+                floatBtn.classList.remove('hidden');
+                resetHideTimeout();
+            }
+        }
+
+        // Back button ကြောင့် ထွက်သွားလျှင် ခလုတ် ပြန်သိမ်းရန်
         function checkFsChange() {
             const isFS = document.fullscreenElement || document.webkitFullscreenElement;
             if (!isFS) {
+                clearTimeout(hideTimeout);
                 floatBtn.classList.add('hidden');
-            } else {
-                floatBtn.classList.remove('hidden');
             }
         }
 
